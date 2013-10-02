@@ -9,30 +9,34 @@
 #include <string.h>
 #include <stdlib.h>
 
-int letter_index_array[26];
+
+int letter_index_array[27];
+char** words;
+char** reversed_array;
+char** result_array;
 
 
 int returnIndex(char* word);
 void storeLetterIndex(char* words, int index);
 char * reverseWord(char* words);
-char ** lookUpReversedWords(char** words, int num_words);
+int lookUpReversedWords( int num_words);
+int compare (const void * a, const void * b );
+char ** reverseArray(int num_words);
 
 int main(int argc, char* argv[]) {
     
     int i = 0;
-    int num_words = 235886;
+
+    int count;
     int word_size = 25;
+    int num_words = 235886;
     
-    
-    
-    
-    char** words = malloc((num_words+1) * sizeof(char *));
+    words = malloc((num_words+1) * sizeof(char *));
     
     if (words == NULL) {
         printf("malloc returned NULL");
         return -1;
     }
-    
     
     /* Allocate memory for each word and store them */
     for (i=0; i<num_words+1; i++) {
@@ -50,35 +54,59 @@ int main(int argc, char* argv[]) {
         if (strlen(words[i]) == 1) {
             storeLetterIndex(words[i], i);
         }
+        count = i;
     }
-    
-    
-    char** reversed_array = lookUpReversedWords(words, num_words);
+    letter_index_array[26] = num_words;
 
     
+    //char** reversed_array = lookUpReversedWords(words, num_words);
     
+    reversed_array = reverseArray(num_words);
+    
+    qsort(reversed_array, num_words, sizeof(char *), compare);
+    
+    int total = lookUpReversedWords(num_words);
+    
+    for (i=0; i<total; i++) {
+        printf("%s\n",result_array[i]);
+    }
+
 }
 
-char ** lookUpReversedWords(char** words, int num_words){
+int compare (const void * a, const void * b ) {
+    return strcmp(*(const char **)a, *(const char **)b);
+}
+
+
+int lookUpReversedWords(int num_words){
     int i, j, z;
     int k = 0;
     char *previous_word = "";
-    char** reversed_words = malloc((num_words+1) * sizeof(char *));
+    result_array = malloc((1500)*sizeof(char *));
 
     for (i=0; i<num_words; i++) {
-        char *word_reversed = reverseWord(words[i]);
+        
+        
+        char *word_reversed = reversed_array[i];
+    
+        
         if (strcmp(word_reversed, words[i]) == 0) {
-            reversed_words[k] = word_reversed;
+            
+            //printf("%s\n",word_reversed);
+            result_array[k] = word_reversed;
             previous_word = word_reversed;
             k++;
         }
-        else if(strcmp(word_reversed, previous_word) != 0){
+        else{
+            
             z = returnIndex(word_reversed);
 
             for (j=letter_index_array[z]; j<=letter_index_array[z+1]; j++) {
                 if (strcmp(word_reversed,words[j]) == 0) {
-                    //printf("found one, %s, %d\n",word_reversed, i);
-                    reversed_words[k] = word_reversed;
+                    //printf("%s\n",word_reversed);
+                    
+                    letter_index_array[z] = j;
+                    result_array[k] = word_reversed;
                     previous_word = word_reversed;
                     k++;
                     break;
@@ -86,7 +114,21 @@ char ** lookUpReversedWords(char** words, int num_words){
             }
         }
     }
-    return reversed_words;
+   
+    return k;
+}
+
+char ** reverseArray(int num_words){
+    int i;
+    char *reversed;
+    char** local_reversed_array = malloc((num_words+1)*sizeof(char *));
+    
+    for (i=0; i<num_words; i++) {
+        reversed = reverseWord(words[i]);
+        local_reversed_array[i] = reversed;
+    }
+    
+    return local_reversed_array;
 }
 
 char * reverseWord(char* words){
@@ -99,7 +141,6 @@ char * reverseWord(char* words){
         reversed[j] = words[i];
         j++;
     }
-    //printf("This is the reversed of %s: %s\n", words, reversed);
 
     return reversed;
 }
